@@ -1,14 +1,11 @@
 package org.lwjglx;
 
-import static org.lwjgl.sdl.SDLError.*;
 import static org.lwjgl.sdl.SDLEvents.*;
 import static org.lwjgl.sdl.SDLInit.*;
 import static org.lwjgl.sdl.SDLKeyboard.*;
 import static org.lwjgl.sdl.SDLKeycode.*;
 import static org.lwjgl.sdl.SDLMouse.*;
-import static org.lwjgl.sdl.SDLPixels.*;
 import static org.lwjgl.sdl.SDLVideo.*;
-import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 import org.lwjgl.sdl.SDL_Event;
@@ -49,7 +46,7 @@ public class Lwjgl3ifyEventLoop {
     public static final SDL_MouseButtonEvent mouseButtonEvent = event.button();
     public static final SDL_MouseWheelEvent mouseWheelEvent = event.wheel();
 
-    public static final boolean isWheelBugged = "x11".equals(SDL_GetCurrentVideoDriver());
+    public static final boolean isMouseWheelBugged = "x11".equals(SDL_GetCurrentVideoDriver());
 
     private static void internalPumpEvents() {
         if (!SDL_IsMainThread()) {
@@ -59,7 +56,6 @@ public class Lwjgl3ifyEventLoop {
         SDL_PumpEvents();
         int peepedEvents = 0;
         while ((peepedEvents = SDL_PeepEvents(eventPeepArray, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST)) > 0) {
-            Lwjgl3ify.LOG.info("{} events logged", peepedEvents);
             for (int i = 0; i < peepedEvents; i++) {
                 memCopy(eventPeepArray.address(i), event.address(), event.sizeof());
                 if (Display.lwjgl3ify$handleSdlEvent()) {
@@ -97,7 +93,7 @@ public class Lwjgl3ifyEventLoop {
                         long wheelEventTimestamp = mouseWheelEvent.timestamp();
 
                         // duplicate scroll wheel inputs under certain circumstances, ignored when device ID mismatch
-                        if (isWheelBugged) {
+                        if (isMouseWheelBugged) {
                             if (lastWheelID != -1 && lastWheelID != mouseWheelEvent.which()) {
                                 lastWheelID = -1;
                                 continue;
