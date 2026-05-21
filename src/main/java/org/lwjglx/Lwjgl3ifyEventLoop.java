@@ -12,7 +12,13 @@ import static org.lwjgl.sdl.SDLVideo.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-import org.lwjgl.sdl.*;
+import org.lwjgl.sdl.SDL_Event;
+import org.lwjgl.sdl.SDL_KeyboardEvent;
+import org.lwjgl.sdl.SDL_MouseButtonEvent;
+import org.lwjgl.sdl.SDL_MouseMotionEvent;
+import org.lwjgl.sdl.SDL_MouseWheelEvent;
+import org.lwjgl.sdl.SDL_TextInputEvent;
+import org.lwjgl.sdl.SDL_WindowEvent;
 import org.lwjglx.input.KeyCodes;
 import org.lwjglx.input.Keyboard;
 import org.lwjglx.input.Mouse;
