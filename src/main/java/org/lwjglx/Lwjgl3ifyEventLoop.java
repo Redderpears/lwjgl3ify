@@ -90,8 +90,6 @@ public class Lwjgl3ifyEventLoop {
                             event.type() == SDL_EVENT_MOUSE_BUTTON_DOWN);
                     }
                     case SDL_EVENT_MOUSE_WHEEL -> {
-                        long wheelEventTimestamp = mouseWheelEvent.timestamp();
-
                         // duplicate scroll wheel inputs under certain circumstances, ignored when device ID mismatch
                         if (isMouseWheelBugged) {
                             if (lastWheelID != -1 && lastWheelID != mouseWheelEvent.which()) {
