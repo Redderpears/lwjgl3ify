@@ -50,14 +50,17 @@ public class Lwjgl3ifyEventLoop {
     public static final SDL_MouseButtonEvent mouseButtonEvent = event.button();
     public static final SDL_MouseWheelEvent mouseWheelEvent = event.wheel();
 
+    public static final boolean isWheelBugged = "x11".equals(SDL_GetCurrentVideoDriver());
+
     private static void internalPumpEvents() {
         if (!SDL_IsMainThread()) {
             throw new IllegalStateException("SDL Event pump called from a non-main thread " + Thread.currentThread());
         }
-        long currentTimestamp = SDL_GetTicksNS();
+        int lastWheelID = -1;
         SDL_PumpEvents();
         int peepedEvents = 0;
         while ((peepedEvents = SDL_PeepEvents(eventPeepArray, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST)) > 0) {
+            Lwjgl3ify.LOG.info("{} events logged", peepedEvents);
             for (int i = 0; i < peepedEvents; i++) {
                 memCopy(eventPeepArray.address(i), event.address(), event.sizeof());
                 if (Display.lwjgl3ify$handleSdlEvent()) {
@@ -94,16 +97,13 @@ public class Lwjgl3ifyEventLoop {
                     case SDL_EVENT_MOUSE_WHEEL -> {
                         long wheelEventTimestamp = mouseWheelEvent.timestamp();
 
-                        // duplicate scroll wheel inputs under certain circumstances, ignored when too recent
-                        if (wheelEventTimestamp > currentTimestamp) {
-                            if (Config.DEBUG_PRINT_MOUSE_EVENTS) {
-                                Lwjgl3ify.LOG.info("Skipped scroll wheel event at {}ns", wheelEventTimestamp);
+                        // duplicate scroll wheel inputs under certain circumstances, ignored when device ID mismatch
+                        if (isWheelBugged) {
+                            if (lastWheelID != -1 && lastWheelID != mouseWheelEvent.which()) {
+                                lastWheelID = -1;
+                                continue;
                             }
-                            break;
-                        } else {
-                            if (Config.DEBUG_PRINT_MOUSE_EVENTS) {
-                                Lwjgl3ify.LOG.info("Did not skip scroll wheel event at {}ns", wheelEventTimestamp);
-                            }
+                            lastWheelID = mouseWheelEvent.which();
                         }
 
                         float xoffset = mouseWheelEvent.x();
