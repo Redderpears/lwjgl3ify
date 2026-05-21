@@ -7,7 +7,6 @@ import static org.lwjgl.sdl.SDLKeyboard.*;
 import static org.lwjgl.sdl.SDLKeycode.*;
 import static org.lwjgl.sdl.SDLMouse.*;
 import static org.lwjgl.sdl.SDLPixels.*;
-import static org.lwjgl.sdl.SDLTimer.SDL_GetTicksNS;
 import static org.lwjgl.sdl.SDLVideo.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
