@@ -47,16 +47,17 @@ public class Lwjgl3ifyEventLoop {
     public static final SDL_MouseWheelEvent mouseWheelEvent = event.wheel();
 
     public static final boolean isMouseWheelBugged = "x11".equals(SDL_GetCurrentVideoDriver());
+    private static int lastWheelID = -1;
 
     private static void internalPumpEvents() {
         if (!SDL_IsMainThread()) {
             throw new IllegalStateException("SDL Event pump called from a non-main thread " + Thread.currentThread());
         }
-        int lastWheelID = -1;
         SDL_PumpEvents();
         int peepedEvents = 0;
         while ((peepedEvents = SDL_PeepEvents(eventPeepArray, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST)) > 0) {
             for (int i = 0; i < peepedEvents; i++) {
+                Lwjgl3ify.LOG.info("logged {} events", peepedEvents);
                 memCopy(eventPeepArray.address(i), event.address(), event.sizeof());
                 if (Display.lwjgl3ify$handleSdlEvent()) {
                     continue;
