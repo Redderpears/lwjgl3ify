@@ -7,17 +7,12 @@ import static org.lwjgl.sdl.SDLKeyboard.*;
 import static org.lwjgl.sdl.SDLKeycode.*;
 import static org.lwjgl.sdl.SDLMouse.*;
 import static org.lwjgl.sdl.SDLPixels.*;
+import static org.lwjgl.sdl.SDLTimer.SDL_GetTicksNS;
 import static org.lwjgl.sdl.SDLVideo.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
-import org.lwjgl.sdl.SDL_Event;
-import org.lwjgl.sdl.SDL_KeyboardEvent;
-import org.lwjgl.sdl.SDL_MouseButtonEvent;
-import org.lwjgl.sdl.SDL_MouseMotionEvent;
-import org.lwjgl.sdl.SDL_MouseWheelEvent;
-import org.lwjgl.sdl.SDL_TextInputEvent;
-import org.lwjgl.sdl.SDL_WindowEvent;
+import org.lwjgl.sdl.*;
 import org.lwjglx.input.KeyCodes;
 import org.lwjglx.input.Keyboard;
 import org.lwjglx.input.Mouse;
@@ -53,6 +48,7 @@ public class Lwjgl3ifyEventLoop {
         if (!SDL_IsMainThread()) {
             throw new IllegalStateException("SDL Event pump called from a non-main thread " + Thread.currentThread());
         }
+        long currentTimestamp = SDL_GetTicksNS();
         SDL_PumpEvents();
         int peepedEvents = 0;
         while ((peepedEvents = SDL_PeepEvents(eventPeepArray, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST)) > 0) {
@@ -90,8 +86,23 @@ public class Lwjgl3ifyEventLoop {
                             event.type() == SDL_EVENT_MOUSE_BUTTON_DOWN);
                     }
                     case SDL_EVENT_MOUSE_WHEEL -> {
+                        long wheelEventTimestamp = mouseWheelEvent.timestamp();
+
+                        // duplicate scroll wheel inputs under certain circumstances, ignored when too recent
+                        if (wheelEventTimestamp > currentTimestamp) {
+                            if (Config.DEBUG_PRINT_MOUSE_EVENTS) {
+                                Lwjgl3ify.LOG.info("Skipped scroll wheel event at {}ns", wheelEventTimestamp);
+                            }
+                            break;
+                        } else {
+                            if (Config.DEBUG_PRINT_MOUSE_EVENTS) {
+                                Lwjgl3ify.LOG.info("Did not skip scroll wheel event at {}ns", wheelEventTimestamp);
+                            }
+                        }
+
                         float xoffset = mouseWheelEvent.x();
                         float yoffset = mouseWheelEvent.y();
+
                         Mouse
                             .addWheelEvent(yoffset == 0 ? (Config.INPUT_INVERT_X_WHEEL ? -xoffset : xoffset) : yoffset);
                     }
