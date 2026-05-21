@@ -57,7 +57,6 @@ public class Lwjgl3ifyEventLoop {
         int peepedEvents = 0;
         while ((peepedEvents = SDL_PeepEvents(eventPeepArray, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST)) > 0) {
             for (int i = 0; i < peepedEvents; i++) {
-                Lwjgl3ify.LOG.info("logged {} events", peepedEvents);
                 memCopy(eventPeepArray.address(i), event.address(), event.sizeof());
                 if (Display.lwjgl3ify$handleSdlEvent()) {
                     continue;
